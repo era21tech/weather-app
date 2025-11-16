@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Weather App - Era21Tech</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <div class="card">
+        <div class="top-bar">
+            <h3 class="app-title">Weather App</h3>
+            <button id="theme-toggle" aria-label="Toggle theme" title="Toggle theme">🌙</button>
+        </div>
+
+        <div class="search">
+            <input type="text" placeholder="Enter City Name" spellcheck="false" />
+            <!-- Voice button -->
+            <button id="voice-btn" aria-label="Voice search" title="Voice search">🎙️</button>
+            <!-- Search button -->
+            <button id="search-btn">
+                <img src="images/search.png" alt="search" />
+            </button>
+        </div>
+
+        <div class="error">
+            <p id="error-text">Invalid City Name</p>
+        </div>
+
+        <div class="Weather">
+            <img src="images/rain.png" class="weather-icon" alt="weather icon" />
+            <h1 class="temp">22°C</h1>
+            <h2 class="city">New york</h2>
+
+            <div class="details">
+                <div class="col">
+                    <img src="images/humidity.png" alt="humidity icon" />
+                    <div>
+                        <p class="humidity">50%</p>
+                        <p>Humidity</p>
+                    </div>
+                </div>
+
+                <div class="col">
+                    <img src="images/wind.png" alt="wind icon" />
+                    <div>
+                        <p class="wind">15 km/h</p>
+                        <p>Wind Speed</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+/* ================= Weather logic (unchanged) ================= */
+const apiKey = "0d0ae63e9303d12d946d82d4fb4bcf8b";
+const apiUrl = "https://api.openweathermap.org/data/2.5/weather?units=metric&q=";
+
+const searchBox = document.querySelector(".search input");
+const searchBtn = document.getElementById("search-btn");
+const weatherIcon = document.querySelector(".weather-icon");
+const errorBox = document.querySelector(".error");
+const errorText = document.getElementById("error-text");
+
+async function checkWeather(city) {
+    if (!city || !city.trim()) return;
+    try {
+        const response = await fetch(apiUrl + encodeURIComponent(city) + `&appid=${apiKey}`);
+        if (response.status == 404) {
+            errorText.textContent = "Invalid City Name";
+            errorBox.style.display = "block";
+            document.querySelector(".Weather").style.display = "none";
+            return;
+        }
+        const data = await response.json();
+        document.querySelector(".city").innerHTML = data.name;
+        document.querySelector(".temp").innerHTML = Math.round(data.main.temp) + "°C";
+        document.querySelector(".humidity").innerHTML = data.main.humidity + "%";
+        document.querySelector(".wind").innerHTML = data.wind.speed + "Km/h";
+
+        const main = data.weather[0].main;
+        if (main == "Clouds") weatherIcon.src = "images/clouds.png";
+        else if (main == "Clear") weatherIcon.src = "images/clear.png";
+        else if (main == "Rain") weatherIcon.src = "images/rain.png";
+        else if (main == "Drizzle") weatherIcon.src = "images/drizzle.png";
+        else if (main == "Mist") weatherIcon.src = "images/mist.png";
+
+        document.querySelector(".Weather").style.display = "block";
+        errorBox.style.display = "none";
+    } catch (err) {
+        errorText.textContent = "Network or API error";
+        errorBox.style.display = "block";
+        document.querySelector(".Weather").style.display = "none";
+        console.error(err);
+    }
+}
+
+searchBtn.addEventListener("click", () => {
+    checkWeather(searchBox.value);
+});
+
+/* allow Enter to search */
+searchBox.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") checkWeather(searchBox.value);
+});
+
+/* ================= Theme toggle logic ================= */
+const themeToggleBtn = document.getElementById("theme-toggle");
+const THEME_KEY = "weather_app_theme";
+
+function applyTheme(theme) {
+    document.documentElement.setAttribute("data-theme", theme);
+    themeToggleBtn.textContent = theme === "dark" ? "🌙" : "☀️";
+    themeToggleBtn.setAttribute("aria-pressed", theme === "light");
+    document.documentElement.classList.add("theme-transition");
+    setTimeout(() => document.documentElement.classList.remove("theme-transition"), 400);
+}
+function loadTheme() {
+    const saved = localStorage.getItem(THEME_KEY);
+    applyTheme(saved || "dark");
+}
+function toggleTheme() {
+    const current = document.documentElement.getAttribute("data-theme") || "dark";
+    const next = current === "dark" ? "light" : "dark";
+    localStorage.setItem(THEME_KEY, next);
+    applyTheme(next);
+}
+loadTheme();
+themeToggleBtn.addEventListener("click", toggleTheme);
+
+/* ================= Voice search logic (Web Speech API) ================= */
+const voiceBtn = document.getElementById("voice-btn");
+let recognition = null;
+let listening = false;
+
+/* Feature detection */
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+
+if (!SpeechRecognition) {
+    // If not supported, disable voice button and set title
+    voiceBtn.disabled = true;
+    voiceBtn.title = "Voice search not supported in this browser";
+    voiceBtn.style.opacity = "0.5";
+} else {
+    recognition = new SpeechRecognition();
+    recognition.lang = 'en-IN'; // set language (adjust if you want)
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognition.continuous = false;
+
+    /* When speech recognized */
+    recognition.addEventListener('result', (e) => {
+        const transcript = Array.from(e.results)
+            .map(r => r[0].transcript)
+            .join('');
+        // Put recognized text in search box and run search
+        searchBox.value = transcript;
+        checkWeather(transcript);
+    });
+
+    recognition.addEventListener('start', () => {
+        listening = true;
+        voiceBtn.classList.add('listening');
+        voiceBtn.title = "Listening... click to stop";
+    });
+
+    recognition.addEventListener('end', () => {
+        listening = false;
+        voiceBtn.classList.remove('listening');
+        voiceBtn.title = "Voice search";
+    });
+
+    recognition.addEventListener('error', (e) => {
+        console.warn("Speech recognition error:", e.error);
+        // show short message in error box
+        errorText.textContent = "Voice recognition error";
+        errorBox.style.display = "block";
+        setTimeout(()=> errorBox.style.display = "none", 2000);
+    });
+
+    voiceBtn.addEventListener('click', () => {
+        if (listening) {
+            recognition.stop();
+            return;
+        }
+        // clear previous error
+        errorBox.style.display = "none";
+
+        try {
+            recognition.start();
+        } catch (err) {
+            console.warn("Could not start recognition:", err);
+        }
+    });
+}
+
+/* Optional: small accessibility - stop recognition when navigating away */
+window.addEventListener('beforeunload', () => {
+    if (recognition && listening) recognition.stop();
+});
+</script>
+</body>
+</html>
