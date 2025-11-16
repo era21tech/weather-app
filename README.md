@@ -1,14 +1,3 @@
-# weather-app
-A simple and responsive Weather App built using HTML, CSS, and JavaScript. Fetches real-time weather data from the OpenWeather API and displays temperature, humidity, wind speed, and weather conditions with a clean UI.
-
-✔ Dark/Light Theme
-✔ Voice Search Feature
-✔ Mic Button
-✔ Smooth Transitions
-✔ Updated Screenshots Section
-✔ Perfect for GitHub
-
-
 # 🌤️ Weather App — Era21Tech
 
 A modern and responsive **Weather App** built using **HTML, CSS, and JavaScript**.
@@ -16,7 +5,12 @@ It fetches real-time weather data from the **OpenWeather API** and includes adva
 
 This is my first GitHub project, created for learning and experimentation.
 
----
+✔ Dark/Light Theme
+✔ Voice Search Feature
+✔ Mic Button
+✔ Smooth Transitions
+✔ Updated Screenshots Section
+✔ Perfect for GitHub
 
 ## ✨ Features
 
@@ -135,12 +129,3 @@ Suggestions, improvements, or pull requests are welcome!
 If you like this project, **give it a star ⭐ on GitHub** — it helps a lot!
 
 ---
-
-If you want, I can also:
-
-✔ Create a **GitHub repo description**
-✔ Create a **LICENSE file** (MIT recommended)
-✔ Create a **Project Banner Image**
-✔ Generate **mic icons** for your repository
-
-Just tell me, jaan ❤️
